@@ -1,0 +1,85 @@
+---
+title: "ATL"
+author: "Brooke Mills"
+date: "2022-10-05"
+output: html_document
+---
+
+```{r}
+#Old Fourth Ward, Sweet Auburn
+#group by nieghborhood and then summerize, use is.na = T
+library(tidyverse)
+library(sf)
+atl <- readRDS("ATL_NSA_Tract.rds")
+atl_city <- readRDS("Atlanta_City_Limits-1.RDS") 
+
+ngb <- c("Old Fourth Ward, Sweet Auburn", "Kirkwood", "West End", "Capitol Gateway, Summerhill")
+
+atl_sub <- atl %>%
+  filter(NAME %in% ngb)
+atl_sub %>%
+  filter(YEAR == 2019) %>%
+  group_by(NAME) %>%
+  count()
+
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = atl %>% filter(YEAR == 2019) %>% mutate(PERC_POV = POV_POP/TOTAL_POP), aes(fill = PERC_POV)) +
+  scale_fill_gradient(low = "orange", high = "purple") +  #scale_fill_gradient2 for diverging data
+  geom_sf(data = atl_city, fill = "transparent", color = "red", size = 1.5) +
+  theme_minimal() +
+  labs(fill = "$",
+       title = "Median household Income in Atlanta")
+# ggplot() +
+  #geom_point(data = atl_sub, aes(x = YEAR, y = POV_POP, group = NAME, color = NAME)) #not working
+```
+
+```{r}
+ngb <- c("Old Fourth Ward, Sweet Auburn", "Kirkwood", "West End", "Capitol Gateway, Summerhill")
+atl_sub <- atl %>%
+  filter(NAME %in% ngb)
+
+# MED_PROP_TAX
+ggplot() +
+  geom_boxplot(data = atl_sub %>% filter(YEAR == 2019),
+               aes(x = NAME, y = MED_PROP_TAX,
+                   fill = NAME)) +
+  ylim(c(0, 7500)) +
+  coord_flip() +
+  theme(legend.position = "none") +
+  theme_minimal()
+
+#change through time across ngb
+
+ggplot() +
+  geom_point(data = atl_sub, aes(x = YEAR, y = MED_PROP_TAX, color = NAME)) +
+  geom_smooth(data = atl_sub, aes(x = YEAR, y = MED_PROP_TAX, color = NAME),
+              se = F, method = "gam")
+```
+```{r}
+#comare our four neighborhoods with the rest of the neighborhoods
+
+atl$USTHEM <- ifelse(atl$NAME %in% ngb, "Our NGB", "ROA")
+
+ggplot() +
+  geom_boxplot(data = atl %>% filter(YEAR == 2019),
+               aes(x = USTHEM, y = MED_PROP_TAX,
+                   fill = USTHEM)) +
+  coord_flip() +
+  theme(legend.position = "none") +
+  theme_minimal()
+
+```
+```{r}
+y10 <- atl %>% filter(YEAR == 2010) %>% arrange(TRACTID)
+y19 <- atl %>% filter(YEAR == 2019) %>% arrange(TRACTID)
+
+y19$Delta <- y19$MED_HH_INC - y10$MED_HH_INC
+
+ggplot() +
+  geom_sf(data = y19, aes(fill = Delta)) +
+  scale_fill_gradient2(low = "red", mid = "white", high = "dark blue")
+```
+

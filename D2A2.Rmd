@@ -1,0 +1,290 @@
+---
+title: "D2A2-Old Fourth Ward"
+author: "Brooke Mills"
+date: "2022-10-11"
+output: html_document
+---
+
+```{r warning=FALSE, message=FALSE, echo=FALSE, results='hide'}
+ATLTracts <- readRDS("Atlanta_City_Limits-1.RDS")
+SF <- readRDS("ATL_NSA_Tract.rds")
+library(tidyverse)
+library(sf)
+library(ggspatial)
+library(spData)
+```
+
+# Introduction
+```{r warning=FALSE, message=FALSE, echo=FALSE, results='hide'}
+ O4W <-SF %>%
+  filter(NAME == "Old Fourth Ward, Sweet Auburn")
+
+ Renter <- O4W %>%
+  summarise(mean = mean(RENTER_HH))
+ glimpse(Renter)
+ 
+ Owner <- O4W %>%
+  summarise(mean = mean(OWNER_HH))
+ glimpse(Owner)
+ 
+ CS <- O4W %>%
+   filter(YEAR == 2019) %>%
+   summarise(total = sum(Convenience))
+glimpse(CS)
+
+ CS2 <- O4W %>%
+   filter(YEAR == 2010) %>%
+   summarise(total = sum(Convenience))
+glimpse(CS2)
+```
+  Looking around Old Fourth Ward, the first thing I notice is the urban nature of the area. There are concrete parking decks and run-down convenience stores lining the street. In fact although there are only two convenience stores in Old Fourth Ward, one of them stands directly at where the location for Old Fourth Ward is pinpointed on the map. There's graffiti scattered about on some of the buildings. However, the further into the neighborhood I wander, the more I notice the state of transition that is frozen in time. There are many construction sites and building equipment is noticeable amongst the properties. Many of the houses look to be recently built, are fashionable, and well-kept. The neighborhood is encased in the heavily industrialized city of Atlanta, but recent development shows a movement towards more suburban style housing.
+
+(https://fourthwardalliance.org/about-us/history)
+
+  The Fourth Ward Alliance website describes some of the history of Old Fourth Ward, the boundaries of the neighborhood, and history and purpose of the four associations that make up the alliance.Old Fourth Ward is an area with a long past in Atlanta. Atlanta was originally split into five wards, and the Old Fourth Ward is the only one which retains its original name. It is one of the oldest neighborhoods in Atlanta. Old Fourth Ward itself is split into four neighborhoods, each of which contain an neighborhood association, which give a voice to their residents and communicate to the other associations to jointly solve issues. Old Fourth Ward is hemmed in by Piedmont Avenue, the MARTA Green Line, Ponce de Leon Avenue, and the Beltline. 
+
+(https://sites.gsu.edu/historyofourstreets/2022/04/12/draft-gentrification-in-the-historic-old-fourth-ward/#:~:text=Atlanta's%20Old%20Fourth%20Ward%20has,prominent%20Civil%20Rights%20leaders%20Dr. & https://uncoveratlanta.com/old-fourth-ward-atlanta/)
+
+  The gsu website discusses the history of Old Fourth Ward in context to the socioeconmoic changes it has undergone, as well as some of the important features of that change. The other website provides a brief history of Old Fourth World further back in history, as well as some tourist information.
+  
+  
+Old Fourth Ward was originally a very nice area of town, occupied by wealthy people and their mansions. After the Great Atlanta Fire of 1917, the mansions were replaced by apartments which then became public housing. It was the home of civil rights leaders, Dr. Martin Luther King and John Wesley Dobbs. It was a racially diverse place, which housed many lower income families and local family businesses. The economic decline continued in the 1950s and 1960s, and area was considered a "not nice" area of town. However, development began in the 1980s, and the area has attracted more people and businesses. Nowadays there is an average of about 1388 households rented and an average of 478 households owned in the neighborhood. Old Fourth has been so transformed that it seems an entirely new place. It is now considered safe, although it is still recommended to walk in groups.
+ 
+  Two major aspects of the development are Ponce City Market and the Beltline. Ponce City Market was originally the structurally unsafe City Hall East, previously the Sears-Roebuck building. Atlanta invested in a retention pond, which not only controlled flooding and runoff but also provided a recreational location. The area around the park had become highly valued. The building was then transformed in the Ponce City Market, which is a major economic boost for the neighborhood. The Beltline also developed close to Ponce City Market. The city invested in connecting abandoned railroad tracks to create interconnected parks. This rapidly raised the housing value in Old Fourth Ward.
+
+  While all of this development has been beneficial to the economy and infrastructure of the neighborhood, it has partially come at the expense of the people. There are worries about gentrification in the neighborhood forcing out families that have lived there for generations. Higher housing prices and costs of living pose threats to the lower-income families in the area.
+
+## Where is Old Fourth Ward in Atlanta?
+```{r warning=FALSE, message=FALSE, echo=FALSE, results='hide'}
+ggplot() +
+  geom_sf(data = ATLTracts, fill = "transparent") +
+  geom_sf(data = O4W, fill = "blue", color = "light blue") +
+  theme_minimal() +
+  annotation_scale(location = "tl", width_hint = .25) +
+  annotation_north_arrow(location = "tr",
+                         style = north_arrow_minimal()) +
+  labs(title = "Old Fourth Ward County Within the City of Atlanta")
+```
+
+```{r warning=FALSE, message=FALSE, echo=FALSE, results='hide'}
+NBH <- SF %>%
+  filter(NAME %in% c("Old Fourth Ward, Sweet Auburn", "Kirkwood", "West End", "Capitol Gateway, Summerhill"))
+#class(NBH$RACE_WHITE)
+#hist(NBH$RACE_WHITE)
+#class(NBH)
+#plot(NBH, max.plot = 40)
+#plot(NBH["RACE_WHITE"])
+```
+
+# Neighborhood Comparison
+
+
+As mentioned above, Old Fourth Ward has undergone recent gentrification. Usually this involves a dispersal of lower income people, usually black, who are then replaced by wealthier white families. 
+```{r warning=FALSE, message=FALSE, echo=FALSE, results='hide'}
+tt <- NBH %>%
+  filter(YEAR == 2019) %>%
+ mutate(oof = (RACE_WHITE)/(TOTAL_POP))
+ggplot(data = tt) +
+  geom_boxplot(aes(x = NAME, y = oof, fill = NAME)) +
+  theme_minimal() +
+  labs(title = "Percentage of White People for Each Neighborhood",
+       x = "",
+       y = "% People Identifying as White for each Neighborhood") +
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = -25)) +
+  coord_flip() 
+```
+
+Old Fourth Ward has a medium number of people identifying as white, compared to the other neighborhoods, which may because of the recent nature of development. It also looks to have a relatively normal distribution. It is interesting that Old Fourth Ward has the second highest average number of white people, given the neighborhoods long history with financial difficulties. West End is also interesting, since it has by far the smallest percentage of white people and a very tight distribution, indicating relative homogeneity between its pieces. 
+
+
+Another important aspect when considering the dynamics of a neighborhood is what the average household looks like. When comparing Old Fourth Ward to other neighborhoods we see...
+```{r warning=FALSE, message=FALSE, echo=FALSE, results='hide'}
+test2 <- NBH %>%
+  filter(YEAR == 2019) %>%
+  group_by(NAME) %>%
+  summarise(ABG = mean(MEAN_HH_SIZE))
+test2 %>%
+  st_as_sf()
+ggplot() +
+  geom_sf(data = ATLTracts, fill = "transparent") +
+  geom_sf(data = test2, aes(fill = ABG)) +
+  scale_fill_gradient(low = "white", high = "red") +
+  theme_minimal() +
+  annotation_scale(location = "tl", width_hint = .25) +
+  annotation_north_arrow(location = "tr",
+                         style = north_arrow_minimal()) +
+  labs(title = "The Average HouseHold Size for Each County in 2019") +
+  theme(legend.title = element_blank())
+
+```
+
+Old Fourth Ward shows a remarkable difference from the other neighborhoods. It has a very small average household size, while the three other neighborhoods have much higher average household size. Notably, the other three neighborhoods also all have relatively similar household sizes. This is surprising. With Old Fourth Ward's recent development, and given that we are looking at the most recent year, we might expect that smaller average families would be more common. However, we would also expect this of Kirkwood, and that pattern is broken. This suggests that there may be something else besides income affecting this factor.
+
+
+Old Fourth Ward, with its recent development, is interesting to compare recent poverty levels to other areas.
+```{r warning=FALSE, message=FALSE, echo=FALSE, results='hide'}
+ttt <- NBH %>%
+  filter(YEAR == 2019) %>%
+ mutate(ouf = (POV_POP)/(TOTAL_POP))
+ggplot(data = ttt) +
+  geom_boxplot(aes(x = NAME, y = ouf, fill = NAME)) +
+  theme_minimal() +
+  labs(title = "Percentage of People Under the Poverty Line \nfor Each Neighborhood",
+       x = "",
+       y = "% People With Income Under the Poverty Line \nin the Last 12 Months") +
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = -25)) +
+  coord_flip() 
+```
+
+Again, just like with the percentage of white people, Old Fourth Ward has a medium percentage of people under the poverty line and normal distribution. Old Fourth Ward has the second lowest percentage of people under the poverty line, after Kirkwood. This is interesting because Old Fourth Ward also had the second highest percent of white people, after Kirkwood. This supports a negative correlation between the percentage of white people and the percentage of people in poverty.
+
+
+And finally, when comparing neighborhoods, considering the quality of life in each neighborhood is important. A big part of this is the access to healthy food resources.
+
+```{r warning=FALSE, message=FALSE, echo=FALSE, results='hide'}
+test4 <- NBH %>%
+  filter(YEAR == 2019) %>%
+  group_by(NAME) %>%
+  mutate(ABG = sum(Grocery + FarmersMarket + InternationalMarket + Produce))
+test4 %>%
+  st_as_sf()
+ggplot() +
+  geom_sf(data = ATLTracts, fill = "transparent") +
+  geom_sf(data = test4, aes(fill = ABG)) +
+  scale_fill_gradient(low = "white", high = "red") +
+  theme_minimal() +
+  annotation_scale(location = "tl", width_hint = .25) +
+  annotation_north_arrow(location = "tr",
+                         style = north_arrow_minimal()) +
+  labs(title = "Average Number of Food Stores in Each County in 2018") +
+  theme(legend.title = element_blank())
+
+```
+
+Here, it is interesting to note that the only neighborhoods that have a large number of stores selling food are West End and Old Fourth Ward. Old Fourth Ward may be explained by the presence of Ponce City Market and access to the Beltline, however this is interesting for West End because it was the neighborhood with the highest rate of poverty, which is usually associated with less access to food. However, Summerhill falls more into the expected pattern, with very few food stores. Interestingly, Kirkwood again breaks the pattern, with very few grocery stores despite the affluent nature of the area. 
+
+
+# Neighborhood Change
+
+
+Old Fourth's Ward history of socioeconomic change means that its relation with the race of its inhabitants is very interesting.
+```{r warning=FALSE, message=FALSE, echo=FALSE, results='hide'}
+O4W %>%
+  select(NAME, YEAR, RACE_WHITE, RACE_BLACK, TOTAL_POP) %>%
+  group_by(YEAR) %>%
+  summarize(average1 = mean((RACE_WHITE)/(TOTAL_POP)),
+            average2 = mean((RACE_BLACK)/(TOTAL_POP))) %>%
+  ggplot() +
+  geom_smooth(aes(x=YEAR, y=average1), color = "red") +
+  geom_smooth(aes(x=YEAR, y=average2), color = "blue") +
+  geom_point(aes(x=YEAR, y= average1), color = "black") +
+  geom_point(aes(x=YEAR, y= average2), color = "black") +
+  labs(x = "Year",
+       y = "Total Perecnt of People Identifying as White or as Black",
+       title = "The Total Percent of People Identifying as White or Black \nin Old Fourth Ward Each Year") +
+  theme_minimal() +
+  scale_x_continuous(breaks = seq(2010, 2019, 1))
+```
+
+Each year there has been a fairly constant increase in the number of white people living in Old Fourth Ward, with a slightly more recent trend in the decrease in the percentage of black people. This is interesting considering the history of poverty in the area. It suggests that black people may be being displaced by wealthier white patrons moving into a newly desirable area of town and points to the recent development and gentrification of the area. 
+
+
+Considering the surprising patterns seen between neighborhoods, it is important to consider the change of average household size in Old Fourth Ward.
+```{r warning=FALSE, message=FALSE, echo=FALSE, results='hide'}
+O4W %>%
+  select(NAME, YEAR, MEAN_HH_SIZE) %>%
+  group_by(YEAR) %>%
+  summarise(average = sum(MEAN_HH_SIZE)) %>%
+  ggplot(aes(x=YEAR, y=average)) +
+  geom_point(color = "red") +
+  geom_smooth(aes(x=YEAR, y=average)) +
+  labs(x = "Year",
+       y = "The Average Size of Households",
+       title = "The Average Size of Households in Old Fourth Ward Throughout the 2010's") +
+  theme_minimal() +
+  scale_x_continuous(breaks = seq(2010, 2019, 1))
+```
+
+There has been a slow decrease in the size of households in the 2010s. This may also be caused by the increasing wealth in the area. However, the data shows significant variability throughout the years, so there might not as clear a relation as with the number of white identifying people.
+
+
+And, of course, the change in the amount of poverty tells an important story.
+```{r warning=FALSE, message=FALSE, echo=FALSE, results='hide'}
+O4W %>%
+  select(NAME, YEAR, POV_POP, TOTAL_POP) %>%
+  group_by(YEAR) %>%
+  summarise(average = mean((POV_POP)/(TOTAL_POP))) %>%
+  ggplot(aes(x=YEAR, y=average)) +
+  geom_point(color = "red") +
+  geom_smooth(aes(x=YEAR, y=average)) +
+  labs(x = "Year",
+       y = "The Percentage of People Below the Poverty Line \nin the Last Six Months",
+       title = "The Percentage of People Below the Poverty Line in Old Fourth Ward \nThroughout the 2010's") +
+  theme_minimal() +
+  scale_x_continuous(breaks = seq(2010, 2019, 1))
+```
+
+There has been a steady decrease in the percentage of people below the poverty line since 2010, and increasing around 2014. While this points to good things for the economy and infrastructure for the neighborhood it may also show the progress of gentrification in the area. It supports that the people below the poverty line have been forced out.
+
+
+And another, important factor is the access of all the people in the neighborhood to healthy food.
+```{r warning=FALSE, message=FALSE, echo=FALSE, results='hide'}
+O4W %>%
+  select(NAME, YEAR, Grocery, FarmersMarket, InternationalMarket, Produce) %>%
+  group_by(YEAR) %>%
+  mutate(average = sum(Grocery + FarmersMarket + InternationalMarket + Produce)) %>%
+  ggplot(aes(x=YEAR, y=average)) +
+  geom_point(color = "red") +
+  geom_smooth(aes(x=YEAR, y=average)) +
+  labs(x = "Year",
+       y = "The Number of Stores Cateogrized as Grocery Stores",
+       title = "The Total Number of Grocery Stores in Old Fourth Ward Each Year") +
+  theme_minimal() +
+  scale_x_continuous(breaks = seq(2010, 2019, 1))
+```
+
+This shows that there was a sudden increase in the average number of stores selling food in the neighborhood around 2014, which is good for residential access to food. However, the jumps in this graph suggest that one or two stores may be causing the change, which indicates that there are not many stores overall. Also, in the most recent year, there a drop back down to lower numbers of food stores.
+
+
+Considering the importance of poverty level in neighborhoods in telling the story of shifting socioeconomic dynamics in Atlanta, let's look at the change in amount of poverty between four neighborhoods.
+```{r warning=FALSE, message=FALSE, echo=FALSE, results='hide'}
+NBH %>%
+  select(NAME, YEAR, POV_POP, TOTAL_POP) %>%
+  group_by(NAME, YEAR) %>%
+  summarise(average = sum((POV_POP)/(TOTAL_POP))) %>%
+  ggplot(aes(x=YEAR, y=average, group = NAME, color = NAME)) +
+  geom_line() +
+  theme_minimal() +
+  labs(x = "Year",
+       y = "Average Percentage of People with Income Below the Poverty Line \nin the Last 12 Months",
+       title = "Total Percentage of People with Income Below the Poverty Line \nin the Last 12 Months for Each in Each Neighborhood") +
+  scale_x_continuous(breaks = seq(2010, 2019, 1))
+```
+
+Old Fourth Ward has had the most dramatic change in the percent of people below the poverty line. After 2012 it starts have a steep and relatively consistent decrease in the percent of people below the poverty line. We can also see that the only other county with a similar percent of people below the poverty line is Summerhill which, while also seeing a decline in their percentage, has not declined as much as Old Fourth Ward. We can see that Kirkwood and West End have relatively lower percentages of people below the poverty line, and while West End has seen some increase in the percentage in recent years, Kirkwood has seen a decrease.
+
+
+# Neighborhood Reflection
+Comparing my and my neighbors visualizations, I realized that many of the problems in the neighborhood can be traced back to increasing gentrification in the area. There is an apparent decline in poverty, which would suggest to some that life in the neighborhood is improving. However, look at my neighbors visualizations depicting food security, such as the number of grocery stores, makes me realize that life might not be improving as much as possible. Food stores are still not very abundant in the population, meaning that food is only sufficiently available to people with strong incomes and transportation. Also, there the apparent lack of poverty is coupled, as my neighbors visualizations showed, a decrease in the number of black people in the neighborhood. As black people have historically been less wealthy, this suggests that the decreased poverty is not because increased wealth and security of the people in the neighborhood, but rather that these people are being forced and the wealth is moving in.
+This suggests to me that we will continue to see an increase in wealth in the neighborhood, as well as lower family sizes. With this, I hope there will be a way to provide for people who historically lived in the area and who may come under pressure to make room for more development. However, considering past examples of gentrification, I suspect that many people will be forced to leave the area.
+
+Considering this I would like to ask our current resident:
+
+  1. How confident do you feel that you will be able to, and will like to, continue living in our neighborhood.
+  
+  2. How often do you go shopping for food and what kind of store do you go to? How do you get there?
+  
+  3. How recently did you move into the neighborhood and how well do you feel like you 'fit in'?
+  
+# Dear Data Project
+For my Dear Data project I tracked my usage of apps on my phone throughout two very different days. I think that overall the variables I tracked were fairly well-thought out. The data was collected and presented by Apple, who can hire very good data specialists, so the data was fairly well-formatted. However, I think I would diversify my data to also include time spent on other devices. I would also want to spend more time collecting data, so that I could gt a better estimate of what my average time spent online was and where I spent the most time. One thing I am concerned about it the accuracy of the data. Without knowing how the data was recorded, due to not having created the algorithm, I cannot be sure how it is recording and how accurate it may be. Therefore, I would like to also attempt to create my own recordings of what apps I used and when in order to test how accurate the data collection on my phone was. 
+If I was living in Old Fourth Ward today, my internet usage may not be to different than it is today. With the recent gentrification of the area, the demographics of the average person living there would not be too different from my own. However, if I lived in Old Fourth Ward even a decade ago, my phone time may be significantly different. Assuming that I would have relatively the same technology (obviously false) I would most likely spend far less time on the phone. Considering the higher level poverty at that time, I may be using a phone on a limited data plan. This would both cut down phone time and changed the apps that I used most often. I would likely use less data looking at entertainment and instead only look at apps I needed to navigate everyday life.
+
+![](DDP1.png)
+![](DDP2.png)
+
+I decided to visualize my data as a bar graph because, as the Apple visualization showed, this is a very easy way to see chunks of a data. I switched up the how the colors were assigned however. Since I was used very few apps each day, and these weren't well described by Apple's categores, I decided only plot the three most common apps for each day. The same colors were used each day, so a key was created to show the different apps for each day. This allowed me to consolidate my data into two graphs, only one per day. I also decided to include a drawing of symbols that represented my daily activities above the bars, as this was a fun way to add context to the the data.
+
+

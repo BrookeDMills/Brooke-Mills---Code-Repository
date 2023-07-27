@@ -1,0 +1,93 @@
+---
+title: "Computional Essay"
+author: "Brooke Mills"
+date: "2022-09-19"
+output: html_document
+---
+
+# BackGround
+The 500 Cities Project data provides a snapshot of health data from 500 cities dispersed throughout all of the states of America. It includes data from surveys and censuses from the CDC, Division of Population Health, Epidemiology and Surveillance Branch. This data provides useful, and first of its kind, information about health problems within large tracts of human populations. This information can then be used to informatively create preventative measures for bad health. However, this data was only collected for small swaths of cities and so might not be characteristic of the whole city. Furthermore, the sample was only in urban populations so the conclusions may not be generalized to rural populations. Also, only a few cites in each state were tested, and the small sample size leaves room for inaccuracies in the data. The data was collected for adults over 18, so the results also can't not be applied to children. The two variables used in this essay are the percent of adults who report 14 or more days in the last 40 where they experienced poor physical health and the percent of adults who report 14 or more days in the last 40 where they experienced poor mental health.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+setwd('/Users/brooke/Documents/Data Science Data')
+health <- readRDS("/Users/brooke/Documents/Data Science Data/W4/health.RDS") 
+
+health$Region <- NA
+health$Region[health$StateAbbr %in% c("GA", "NC", "LA", "AL", "FL", "SC", "TN", "MS", "DE", "MD", "DC", "VA", "WV", "KY", "AR", "OK", "TX")] <- "SouthEast"
+health$Region[health$StateAbbr %in% c("ME", "VT", "NH", "MA", "CT", "RI", "NY", "NJ", "PA")]<-"NorthEast"
+health$Region[health$StateAbbr %in% c("ND", "MN", "SD", "IA", "NE", "KS", "MO", "WI", "IL","IN", "MI", "OH")]<-"MidWest"
+health$Region[health$StateAbbr %in% c("MT", "WY", "CO", "NM", "UT", "AZ", "ID", "NV", "CA", "OR", "WA", "AK", "HI")] <- "West"
+
+
+
+health %>%
+  group_by(Region) %>%
+  summarize(MPH = mean(PoorHealth), MMH = mean(MentalHealth)) %>%
+  arrange(desc(MPH))
+```
+
+MPA stands for Mean Poor Health and MMH stands for Mean Mental Health. The data was found by grouping the states into four regions: SouthEast, NorthEast, MidWest, and West, and then finding the mean value for each of the two variables for each region. This chart shows that, in general, the region with the highest average number of adults over 8 who report that their physical health was not good for 14 or more days in the last 40 days also tend to have the highest number of adults who report that their mental health was not good for 14 or more days in the last 40. This suggests that physical health and mental health are positively correlated and may effect each other. However, these numbers are close together so it is difficult to determine if the difference is truly significant. To determine this we look at the distribution of the data in each region.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+health %>%
+  ggplot() +
+  geom_boxplot(aes(x = Region, y = PoorHealth, fill = Region)) +
+  labs(title = "Percentage of Adults in U.S Regions who Report Poor Health",
+       x = "",
+       y = "Percentage of Adults over 18 who report Poor Physical Health in 14 or more days in the last 40") +
+  theme_classic() +
+  coord_flip()
+  
+```
+
+This chart shows that, while the average percentage of adults reporting poor health are slightly different, the overall distribution of the data is overlapping. This is shown in the overlapping quartiles of the boxes, showing that there is a significant chance that the differences in the data are not statistically significant. This means that we can't presume that any differences in poor physical health between regions is caused by any factor except for chance.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+health %>%
+  ggplot() +
+  geom_boxplot(aes(x = Region, y = MentalHealth, fill = Region)) +
+  labs(title = "Percentage of Adults in Geogia with Poor Mental Health",
+       x = "",
+       y = "Percentage of Adults over 18 who report Poor Mental Health in 14 or more days in the last 40") +
+  theme_classic() +
+  coord_flip()
+  
+```
+
+Once again, this chart shows that there is little significant difference in between the regions. In this case, all of the boxes are overlapping, meaning that there is little chance of a statistically significant difference between any of the regions. There are also few outliers, which indicates that there are few places within each region which are significantly different from any other, so most values are reasonably similar.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+health %>%
+  filter(Region == "SouthEast") %>%
+  ggplot() +
+  geom_histogram(aes(x = PoorHealth), color = "white") +
+  geom_vline(aes(xintercept = mean(PoorHealth)), color = "light blue", linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Percentage of Adults in the SouthEast who Report Poor Health",
+       x = "Percentage of Adults over 18 who report Poor Physical Health in 14 or more days in the last 40",
+       y = "Frequency of Percentage")
+```
+
+
+As the SouthEast was the only region with outliers, we look deeper into the distribution of this data. In this histogram we can see that the there is a relatively normal distribution, but with somewhat of a left skew. This means that there is many cases with relatively high levels of percentages but there are some cases with significantly lower levels, which might indicate a difference in these locations compared to the rest of the region.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+health %>%
+  filter(Region == "SouthEast") %>%
+  ggplot() +
+  geom_histogram(aes(x = MentalHealth), color = "white") +
+  geom_vline(aes(xintercept = mean(MentalHealth)), color = "light blue", linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Percentage of Adults in the SouthEast with Poor Mental Health",
+       x = "Percentage of Adults over 18 who report Poor Mental Health in 14 or more days in the last 40",
+       y = "Frequency of Percentage")
+```
+
+This chart illustrates the frequency of cities reporting a range of percentage for mental health. It shows yet another normal distribution, although it is slightly more left skewed than the data for poor health. Once again, this could indicate that some locations in the SouthEast are reporting far lower levels of poor mental health. However, this chart does not rule out that these outliers are due to chance and it also does not imply that the outliers from the two varaibles are from the same locations.
+
+
+# Conclusions
+What this data suggests is that, while there appears to a correlation in poor physical health and poor mental health, the differences observed between regions is insufficient to conclude that there is a strong relationship. Therefore, more thorough analysis of the data should be done, looking more in depth at the states making up each region. Experiments should also be done to determine if one of these variables has any causal effect on the other. 
+
+For the time being however, funds should not be allocated to try to alleviate either poor physical or mental health to help with the other, although allocating funds to try to alleviate either independent of the other would be acceptable. The chart at the top indicates that in each region there are higher percentages reported for poor mental health then poor physical health, so funds could be allocated to alleviate that problem. If funds are allocated to attempt to improve either physical or mental health, this could be used as a opportunity record the effect on the other variable and to compare to regions which didn't receive funds. Neither of the regions had significantly different means in either mental or physical health, so none of them would be a clear choice to receive funds, although the West had the lowest means for both variables and so may be considered.
