@@ -1,4 +1,4 @@
-# R-Code
+# Code Explanation
 This is an explaination of the projects I have uploaded to this repository.
 
 The "D2A2 copy.html.zip" and "D2A2.Rmd" files were created for the final project for my Environmental Data Science class. For this project I downloaded precleaned data on counties in Atlanta provided by my teacher into RStudio along with several fuction packages to provide necessary functions. I then used these functions to further refine the data to focus on a few individual regions of Atlanta. From this data I created clean and simple visuals that showed locations of regions relative to the larger Atlanta area, differences in values between regions, as well as trends in demographics in a specific area. I also wrote descriptions for each visualization that lead the reader through the information. This information was then compiled from the Rmd to a presentable html file.
